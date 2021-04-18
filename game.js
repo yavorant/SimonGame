@@ -1,62 +1,95 @@
 
-//6. Add the new randomChosenColour generated in step 4 to the end of the gamePattern.???
+const buttonColours = ["red", "blue", "green", "yellow"];
 
 let gamePattern = [];
 let userClickedPattern = [];
-const buttonColours = ["red", "blue", "green", "yellow"];
+
+let started = false;
 let level = 0;
 
-/*
-$("body").keydown(function() {
-  console.log("Handler for .keypress() called.");
+$(document).keypress(function() {
+  if (!started) {
+    $("#level-title").text("Level " + level);
+    nextSequence();
+    started = true;
+  }
 });
-*/
+
+$(".btn").click(function(e) {
+
+  let userChosenColour = this.id;
+  userClickedPattern.push(userChosenColour);
+
+  playSound(userChosenColour);
+  animatePress(userChosenColour);
+
+  //2. Call checkAnswer() after a user has clicked and chosen their answer, passing in the index of the last answer in the user's sequence.
+  checkAnswer(userClickedPattern.length-1);
+});
 
 
-$("body").keypress(function() {
-  $("h1").text("Level 0");
-  nextSequence();
-});
+//1. Create a new function called checkAnswer(), it should take one input with the name currentLevel
+function checkAnswer(currentLevel) {
+
+    //3. Write an if statement inside checkAnswer() to check if the most recent user answer is the same as the game pattern. If so then log "success", otherwise log "wrong".
+    if (gamePattern[currentLevel] === userClickedPattern[currentLevel]) {
+
+      console.log("success");
+
+      //4. If the user got the most recent answer right in step 3, then check that they have finished their sequence with another if statement.
+      if (userClickedPattern.length === gamePattern.length){
+
+        //5. Call nextSequence() after a 1000 millisecond delay.
+        setTimeout(function () {
+          nextSequence();
+        }, 1000);
+
+      }
+
+    } else {
+
+      console.log("wrong");
+      playSound("wrong");
+      $("body").addClass("game-over");
+      setTimeout(function () {
+        $("body").removeClass("game-over");
+      }, 200);
+      $("#level-title").text("Game Over, Press Any Key to Restart");
+      startOver();
+    }
+}
 
 function nextSequence() {
-  level = level + 1;
-  $("h1").text("Level " + level);
-  //a new random number between 0 and 3
-  let randomNumber = Math.floor(Math.random() * 4);
-  // select a random color from the buttonColours array
-  let randomChosenColour = buttonColours[randomNumber];
 
+  //6. Once nextSequence() is triggered, reset the userClickedPattern to an empty array ready for the next level.
+  userClickedPattern = [];
+
+  level++;
+  $("#level-title").text("Level " + level);
+
+  const randomNumber = Math.floor(Math.random() * 4);
+  const randomChosenColour = buttonColours[randomNumber];
   gamePattern.push(randomChosenColour);
 
-  //Use jQuery to select the button with the same id as the randomChosenColour
-
-  $(`#${randomChosenColour}`).fadeOut(500).fadeIn(500);
-  //console.log(randomChosenColour);
-
+  $("#" + randomChosenColour).fadeIn(100).fadeOut(100).fadeIn(100);
   playSound(randomChosenColour);
 }
 
-//play sound coresponding to color
 function playSound(name) {
-  let audio = new Audio("sounds/" + name + ".mp3");
+  const audio = new Audio("sounds/" + name + ".mp3");
   audio.play();
 }
 
-$(".btn").click(function(e) {
-    let userChosenColour = this.id;
-    //console.log("this.id: ", this.id); // 'this.id' Returns the button clicked id's
-    playSound(userChosenColour);
-    animatePress(userChosenColour);
-    userClickedPattern.push(userChosenColour);
-    //console.log(userClickedPattern);
-});
+function animatePress(currentColor) {
+  $("#" + currentColor).addClass("pressed");
+  setTimeout(function () {
+    $("#" + currentColor).removeClass("pressed");
+  }, 100);
+}
 
-//add "pressed" class to the button that gets clicked inside animatePress().
-// and remove the "pressed" class after a 100 milliseconds.
-function animatePress(currentColour) {
-  $(`#${currentColour}`).addClass("pressed");
-  window.setTimeout(function(){
-    $(`#${currentColour}`).removeClass("pressed");
-  },100);
-  //console.log("inside animatePress()");
+function startOver() {
+  //reset the values of level, gamePattern and started variables.
+  gamePattern = [];
+  started = false;
+  level = 0;
 }
